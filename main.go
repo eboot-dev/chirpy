@@ -12,21 +12,21 @@ import (
 /* Utils */
 
 func respondWithError(w http.ResponseWriter, code int, msg string) {
-	type errorStruct struct {
+	type errorResponse struct {
 		Error string `json:"error"`
 	}
-	err := errorStruct { Error: msg }
+	err := errorResponse { Error: msg }
 	respondWithJSON(w,code,err)
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	w.Header().Set("Content-Type", "application/json")
 	response, err := json.Marshal(payload)
 	if err != nil {
 		log.Printf("Error marshalling JSON: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(response)
 }

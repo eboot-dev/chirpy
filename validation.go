@@ -9,15 +9,13 @@ import (
 
 func replaceProfaneWords(msg, replacement string,profaneWords map[string]struct{}) string {
 	words := strings.Split(msg," ")
-	clean := make([]string,len(words))
-	copy(clean,words)
 	for i,word := range words {
 		_,ok := profaneWords[strings.ToLower(word)]
 		if ok {
-			clean[i] = replacement
+			words[i] = replacement
 		}
 	}
-	return strings.Join(clean," ")
+	return strings.Join(words," ")
 }
 
 func validationHandler(w http.ResponseWriter, req *http.Request) {
@@ -35,25 +33,26 @@ func validationHandler(w http.ResponseWriter, req *http.Request) {
     }
 
 	// Check message length
-	if len(msg.Content) > 140 {
+	const maxChirpLength = 140
+	if len(msg.Content) > maxChirpLength {
 		respondWithError(w,http.StatusBadRequest,"Chirp is too long")
 		return
 	}
 
 	// Check profanity
 	profaneWords := map[string]struct{}{
-		"kerfuffle":struct{}{},
-		"sharbert":struct{}{},
-		"fornax":struct{}{},
+		"kerfuffle": {},
+		"sharbert":  {},
+		"fornax":    {},
 	}
-	cleanMsg := replaceProfaneWords(msg.Content,"****",profaneWords)
+	const censoredProfanity = "****"
+	cleanMsg := replaceProfaneWords(msg.Content,censoredProfanity,profaneWords)
 
 	// Response
 	type respStruct struct {
         CleanMsg string `json:"cleaned_body"`
     }
-    response := respStruct{
+    respondWithJSON(w, http.StatusOK, respStruct {
         CleanMsg: cleanMsg,
-    }
-	respondWithJSON(w, http.StatusOK, response)
+    })
 }
