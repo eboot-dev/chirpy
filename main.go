@@ -32,34 +32,7 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 }
 
 /* Handlers */
-func validationHandler(w http.ResponseWriter, req *http.Request) {
-	type chirp struct {
-        Content string `json:"body"`
-    }
 
-    decoder := json.NewDecoder(req.Body)
-    msg := chirp{}
-    err := decoder.Decode(&msg)
-    if err != nil {
-		log.Printf("Error decoding chirp body: %s", err)
-		respondWithError(w,http.StatusBadRequest,"Error decoding chirp body")
-		return
-    }
-
-	if len(msg.Content) > 140 {
-		respondWithError(w,http.StatusBadRequest,"Chirp is too long")
-		return
-	}
-
-	// Response
-	type respStruct struct {
-        Valid bool `json:"valid"`
-    }
-    response := respStruct{
-        Valid: true,
-    }
-	respondWithJSON(w, http.StatusOK, response)
-}
 /* Middlewares */
 
 // This is a looging middleware. It logs the Method and URL.Path of a request and pass it to the next handler to be processed
