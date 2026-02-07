@@ -7,3 +7,6 @@ VALUES (
 	$1 -- parameter passed by application
 )
 RETURNING *;
+
+-- name: DeleteUsers :exec
+TRUNCATE TABLE users;

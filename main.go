@@ -9,6 +9,8 @@ import (
 	"database/sql"
 	"os"
 	"github.com/joho/godotenv"
+	"time"
+	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/eboot-dev/chirpy/internal/database"
 )
@@ -36,7 +38,35 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 }
 
 /* Handlers */
+func usersHandler(w http.ResponseWriter, req *http.Request){
+	type userInput struct {
+        Email string `json:"email"`
+    }
 
+    decoder := json.NewDecoder(req.Body)
+    input := userInput{}
+    err := decoder.Decode(&input)
+    if err != nil {
+		log.Printf("Error decoding user input: %s", err)
+		respondWithError(w,http.StatusBadRequest,"Error decoding user input")
+		return
+    }
+
+	user, err := apiCfg.db.CreateUser(req.Context(), input.Email)
+	// Response
+    type User struct {
+		ID        uuid.UUID `json:"id"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+		Email     string    `json:"email"`
+	}	
+	respondWithJSON(w, http.StatusCreated, User {
+		ID: user.ID,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Email: user.Email,
+    })
+}
 /* Middlewares */
 
 // This is a looging middleware. It logs the Method and URL.Path of a request and pass it to the next handler to be processed
@@ -46,6 +76,8 @@ func middlewareLogger(nextHandler http.Handler) http.Handler {
 		nextHandler.ServeHTTP(w, req)
 	})
 }
+
+var apiCfg apiConfig
 
 func main() {
 	const port = "8080"
@@ -62,7 +94,7 @@ func main() {
 	const metricsResetRoutePath = "POST /admin/reset"
 
 	const validationRoutePath = "POST /api/validate_chirp"
-	
+	const usersRoutePath = "POST /api/users"	
 	
 	// Load the `.env` file
 	godotenv.Load()
@@ -71,6 +103,7 @@ func main() {
 	if dbURL == "" {
 		log.Fatal("DB_URL must be set")
 	}
+	environment := os.Getenv("PLATFORM")
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -78,9 +111,10 @@ func main() {
 	}
 	dbQueries := database.New(db)
 	// init apiConfig struct
-	apiCfg := apiConfig{
+	apiCfg = apiConfig{
 		fileserverHits: atomic.Int32{},
 		db: dbQueries,
+		env: environment,
 	}
 
 	log.Println("Starting up...")
@@ -106,6 +140,8 @@ func main() {
 	
 	// Validation Chirp Endpoint
 	mux.HandleFunc(validationRoutePath,validationHandler)
+
+	mux.HandleFunc(usersRoutePath,usersHandler)
 	server := &http.Server{
 		Handler: mux,
 		Addr: ":" +port,
