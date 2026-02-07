@@ -6,8 +6,12 @@ import (
 	"log"
 	"sync/atomic"
 	"encoding/json"
+	"database/sql"
+	"os"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"github.com/eboot-dev/chirpy/internal/database"
 )
-
 
 /* Utils */
 
@@ -58,10 +62,27 @@ func main() {
 	const metricsResetRoutePath = "POST /admin/reset"
 
 	const validationRoutePath = "POST /api/validate_chirp"
+	
+	
+	// Load the `.env` file
+	godotenv.Load()
+	// Connect to db
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL must be set")
+	}
+
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("ERROR: Can't establish connection with DB %s",err)
+	}
+	dbQueries := database.New(db)
 	// init apiConfig struct
 	apiCfg := apiConfig{
 		fileserverHits: atomic.Int32{},
+		db: dbQueries,
 	}
+
 	log.Println("Starting up...")
 	mux := http.NewServeMux()
 	/* Registering Handlers */

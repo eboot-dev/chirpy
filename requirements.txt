@@ -1,0 +1,3 @@
+a `.env` file is required. It contains the DB_URL variable pointing to the PostgreSQL database as in:
+
+DB_URL="postgres://<username>:@localhost:5432/<db_name>?sslmode=disable"
