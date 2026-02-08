@@ -10,3 +10,5 @@ RETURNING *;
 
 -- name: DeleteUsers :exec
 TRUNCATE TABLE users CASCADE;
+
+-- DELETE FROM users
