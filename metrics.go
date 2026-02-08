@@ -38,7 +38,7 @@ func (c *apiConfig) metricsResetHandler(w http.ResponseWriter, req *http.Request
 	log.Println("Delete all users")
 	err := c.db.DeleteUsers(req.Context())
 	if err != nil {
-		log.Println("ERROR: Can't Delete all users")
+		log.Println("ERROR: Can't Delete all users %s",err)
 	}
 	c.fileserverHits.Store(0)
 	w.WriteHeader(http.StatusOK)

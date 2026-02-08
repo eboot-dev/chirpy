@@ -93,7 +93,8 @@ func main() {
 	const metricsRoutePath = "GET /admin/metrics"
 	const metricsResetRoutePath = "POST /admin/reset"
 
-	const validationRoutePath = "POST /api/validate_chirp"
+	const chirpRoutePath = "POST /api/chirps"
+	
 	const usersRoutePath = "POST /api/users"	
 	
 	// Load the `.env` file
@@ -138,8 +139,8 @@ func main() {
 	// Metrics Reset Endpoint
 	mux.HandleFunc(metricsResetRoutePath,apiCfg.metricsResetHandler)
 	
-	// Validation Chirp Endpoint
-	mux.HandleFunc(validationRoutePath,validationHandler)
+	// Chirp Endpoint
+	mux.HandleFunc(chirpRoutePath,chirpHandler)
 
 	mux.HandleFunc(usersRoutePath,usersHandler)
 	server := &http.Server{
