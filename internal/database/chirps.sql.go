@@ -11,6 +11,56 @@ import (
 	"github.com/google/uuid"
 )
 
+const chirp = `-- name: Chirp :one
+SELECT id, created_at, updated_at, body, user_id from chirps where id = $1
+`
+
+func (q *Queries) Chirp(ctx context.Context, id uuid.UUID) (Chirp, error) {
+	row := q.db.QueryRowContext(ctx, chirp, id)
+	var i Chirp
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Body,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const chirps = `-- name: Chirps :many
+SELECT id, created_at, updated_at, body, user_id from chirps order by created_at asc
+`
+
+func (q *Queries) Chirps(ctx context.Context) ([]Chirp, error) {
+	rows, err := q.db.QueryContext(ctx, chirps)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Chirp
+	for rows.Next() {
+		var i Chirp
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Body,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const createChirp = `-- name: CreateChirp :one
 INSERT INTO chirps (id, created_at, updated_at, body, user_id)
 VALUES (

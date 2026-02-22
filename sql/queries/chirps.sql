@@ -11,3 +11,10 @@ RETURNING *;
 
 -- name: DeleteChirps :exec
 TRUNCATE TABLE chirps;
+
+-- name: Chirps :many
+SELECT * from chirps order by created_at asc;
+
+
+-- name: Chirp :one
+SELECT * from chirps where id = $1;

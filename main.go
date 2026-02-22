@@ -46,7 +46,9 @@ func main() {
 	const metricsRoutePath = "GET /admin/metrics"
 	const metricsResetRoutePath = "POST /admin/reset"
 
-	const chirpRoutePath = "POST /api/chirps"
+	const chirpPOSTRoutePath = "POST /api/chirps"
+	const chirpsGETRoutePath = "GET /api/chirps"
+	const chirpGETRoutePath = "GET /api/chirps/{chirpID}"
 	
 	const usersRoutePath = "POST /api/users"	
 	
@@ -94,8 +96,13 @@ func main() {
 	
 	// API Users Endpoint
 	mux.HandleFunc(usersRoutePath,apiCfg.usersCreateHandler)
-	// API Chirps Endpoint
-	mux.HandleFunc(chirpRoutePath,apiCfg.chirpsCreateHandler)
+	// API Chirps Endpoints
+	// POST => CreateChirp
+	mux.HandleFunc(chirpPOSTRoutePath,apiCfg.chirpsCreateHandler)
+	// GET => Return ALL Chirps
+	mux.HandleFunc(chirpsGETRoutePath,apiCfg.chirpsHandler)
+	// GET{chirpID} => Return ALL Chirps
+	mux.HandleFunc(chirpGETRoutePath,apiCfg.getChirpHandler)
 	
 	// ADMIN Metrics Endpoint
 	mux.HandleFunc(metricsRoutePath,apiCfg.metricsHandler)

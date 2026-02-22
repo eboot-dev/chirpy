@@ -49,6 +49,59 @@ type Chirp struct {
 	Body 		string 		`json:"body"`
 	// CleanedBody string 		`json:"cleaned_body"`
 }
+ 
+func (c *apiConfig) getChirpHandler(w http.ResponseWriter, req *http.Request){
+	log.Printf("PATHVALUE: %v\n",req.PathValue("chirpID"))
+	id, err := uuid.Parse(req.PathValue("chirpID"))
+	if err != nil {
+		log.Printf("ERROR: Invalid UUID string: %v\n", err)
+		respondWithError(w,http.StatusNotFound,"Coudn't get chirp")
+		return
+	}
+
+	chirp, err := c.db.Chirp(req.Context(), id)
+	if err != nil {
+		log.Printf("ERROR: coudn't get chirp [%s]", err)
+		respondWithError(w,http.StatusNotFound,"Coudn't get chirp")
+		return
+	}
+	
+    respondWithJSON(w, http.StatusOK, Chirp{
+        ID:				chirp.ID,
+		CreatedAt:		chirp.CreatedAt,	
+		UpdatedAt:		chirp.UpdatedAt,
+		Body:      		chirp.Body,
+		UserID:			chirp.UserID,
+    })
+    return
+}
+
+func (c *apiConfig) chirpsHandler(w http.ResponseWriter, req *http.Request){
+
+	chirps, err := c.db.Chirps(req.Context())
+	if err != nil {
+		log.Printf("ERROR: coudn't get chirps [%s]", err)
+		respondWithError(w,http.StatusInternalServerError,"Coudn't get chirps")
+		return
+	}
+	nChirps := len(chirps)
+	log.Printf("#chirps %v", nChirps)
+	log.Printf("chirps: %v", chirps)
+	var res []Chirp
+	for _,c := range chirps {
+		res = append(res,Chirp{
+        ID:				c.ID,
+		CreatedAt:		c.CreatedAt,	
+		UpdatedAt:		c.UpdatedAt,
+		Body:      		c.Body,
+		UserID:			c.UserID,
+    })
+	}
+    respondWithJSON(w, http.StatusOK, res)
+    return
+}
+
+
 
 func (c *apiConfig) chirpsCreateHandler(w http.ResponseWriter, req *http.Request) {
 	type userInput struct {
